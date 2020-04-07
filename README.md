@@ -8,8 +8,10 @@ Currently, only a single directory of files can be scanned and deleted at a time
 
 ### Windows:  
 java -classpath .;jaudiotagger-2.2.6-SNAPSHOT.jar *.java
+
 java -classpath .;jaudiotagger-2.2.6-SNAPSHOT.jar iTunesProtectedMusicDeleter \<apple id\>
 
 ### Linux / Mac OS:
 java -classpath .:jaudiotagger-2.2.6-SNAPSHOT.jar *.java
+
 java -classpath .:jaudiotagger-2.2.6-SNAPSHOT.jar iTunesProtectedMusicDeleter \<apple id\>
