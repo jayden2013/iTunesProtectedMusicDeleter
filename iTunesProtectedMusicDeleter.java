@@ -14,30 +14,62 @@ import org.jaudiotagger.audio.AudioFileIO;
 public class iTunesProtectedMusicDeleter {
 
 	public static void main(String args[]) {
-		if (args.length < 1) {
+		if (args.length < 1 || args.length > 1) {
 			System.err.println(usage());
 			System.exit(0);
 		}
 		File directory = new File(System.getProperty("user.dir"));
-		File[] files = directory.listFiles();
+		ArrayList<File> fileArrayList = getFiles(directory);
 		ArrayList<File> protectedFiles = new ArrayList<File>();
-		for (File file : files) {
+		for (File file : fileArrayList) {
 			try {
 				AudioFile audioFile = AudioFileIO.read(file);
-				System.out.println(file);
+				System.out.println("Checking " + file);
 				if (audioFile.getTag().getFirst("apID").contains(args[0])) {
 					protectedFiles.add(file);
 				}
 			} catch (Exception e) {
 			}
 		}
-		printFiles(protectedFiles);
-		System.out.println("Press enter to ***DELETE*** these files");
+		if (!protectedFiles.isEmpty()) {
+			printFiles(protectedFiles);
+			System.out.println("Press enter to ***DELETE*** these files");
+			waitForEnter();
+			deleteFiles(protectedFiles);
+		} else {
+			System.out.println("Unable to locate music with apple ID: " + args[0]);
+			waitForEnter();
+		}
+	}
+
+	/**
+	 * Waits for user to press enter
+	 */
+	private static void waitForEnter() {
 		try {
 			System.in.read();
 		} catch (IOException e) {
 		}
-		deleteFiles(protectedFiles);
+	}
+
+	/**
+	 * Populates an ArrayList with all files in the directory and subdirectories
+	 * 
+	 * @param directory
+	 * @return
+	 */
+	private static ArrayList<File> getFiles(File directory) {
+		System.out.println("Searching directory for audio files: " + directory);
+		ArrayList<File> files = new ArrayList<File>();
+		File[] directoryList = directory.listFiles();
+		for (File file : directoryList) {
+			if (file.isDirectory()) {
+				files.addAll(getFiles(file));
+			} else {
+				files.add(file);
+			}
+		}
+		return files;
 	}
 
 	/**
@@ -63,6 +95,7 @@ public class iTunesProtectedMusicDeleter {
 		for (File file : fileList) {
 			System.out.println("Deleting file " + count + " of " + fileList.size());
 			file.delete();
+			count++;
 		}
 		System.out.println("ALL FILES DELETED!");
 	}
