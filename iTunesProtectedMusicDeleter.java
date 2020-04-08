@@ -1,5 +1,7 @@
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 
 import org.jaudiotagger.audio.AudioFile;
@@ -14,11 +16,16 @@ import org.jaudiotagger.audio.AudioFileIO;
 public class iTunesProtectedMusicDeleter {
 
 	public static void main(String args[]) {
-		if (args.length < 1 || args.length > 1) {
+		if (args.length < 1 || args.length > 2) {
 			System.err.println(usage());
 			System.exit(0);
 		}
-		File directory = new File(System.getProperty("user.dir"));
+		File directory;
+		if (args.length == 2) {
+			directory = new File(args[1]);
+		} else {
+			directory = new File(System.getProperty("user.dir"));
+		}
 		ArrayList<File> fileArrayList = getFiles(directory);
 		ArrayList<File> protectedFiles = new ArrayList<File>();
 		for (File file : fileArrayList) {
@@ -33,6 +40,7 @@ public class iTunesProtectedMusicDeleter {
 		}
 		if (!protectedFiles.isEmpty()) {
 			printFiles(protectedFiles);
+			writeFiles(protectedFiles);
 			System.out.println("Press enter to ***DELETE*** these files");
 			waitForEnter();
 			deleteFiles(protectedFiles);
@@ -40,6 +48,28 @@ public class iTunesProtectedMusicDeleter {
 			System.out.println("Unable to locate music with apple ID: " + args[0]);
 			waitForEnter();
 		}
+	}
+
+	/**
+	 * Writes the file list to a log file
+	 * 
+	 * @param fileList
+	 */
+	private static void writeFiles(ArrayList<File> fileList) {
+		String logDirectory = System.getProperty("user.dir");
+		String logFile = logDirectory + "\\audio_log.txt";
+		StringBuffer toWrite = new StringBuffer();
+		for (File file : fileList) {
+			toWrite.append(file);
+			toWrite.append("\n");
+		}
+		try {
+			Files.writeString(Paths.get(logFile), toWrite);
+			System.out.println("Saved a list of matching audio files in " + logFile);
+		} catch (IOException e) {
+			System.err.println("Failed to write log.");
+		}
+
 	}
 
 	/**
@@ -107,9 +137,9 @@ public class iTunesProtectedMusicDeleter {
 	 */
 	private static String usage() {
 		if (System.getProperty("os.name").contains("Windows")) {
-			return "java -classpath .;jaudiotagger-2.2.6-SNAPSHOT.jar iTunesProtectedMusicDeleter";
+			return "java -classpath .;jaudiotagger-2.2.6-SNAPSHOT.jar iTunesProtectedMusicDeleter <apple id> [directory]";
 		} else {
-			return "java -classpath .:jaudiotagger-2.2.6-SNAPSHOT.jar iTunesProtectedMusicDeleter";
+			return "java -classpath .:jaudiotagger-2.2.6-SNAPSHOT.jar iTunesProtectedMusicDeleter <apple id> [directory]";
 		}
 	}
 }
